@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laundra AI | Order Management Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0c0c0e;
+            color: #d1d5db;
+            transition: all 0.2s ease;
+        }
+
+        .saas-card {
+            background-color: #161618;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.2s ease;
+        }
+
+        .saas-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Status Badge System */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .badge-received { background: rgba(59, 130, 246, 0.12); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .badge-processing { background: rgba(245, 158, 11, 0.12); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
+        .badge-ready { background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .badge-delivered { background: rgba(107, 114, 128, 0.12); color: #94a3b8; border: 1px solid rgba(107, 114, 128, 0.2); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2);
+        }
+
+        tr { transition: background-color 0.2s ease; }
+        
+        /* Dropdown custom styling */
+        .status-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 32px !important;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+
+    <!-- Header Section -->
+    <header class="border-b border-white/5 bg-[#0c0c0e]/80 backdrop-blur-md sticky top-0 z-50 px-8 py-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-white mb-2">
+                    Laundra AI – Order Management Dashboard
+                </h1>
+                <p class="text-slate-500 text-sm font-medium">Manage orders, track status, and monitor revenue efficiently</p>
+            </div>
+            <button onclick="openModal()" class="btn-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm flex items-center gap-3 transition-all">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                New Order
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-8 w-full space-y-12">
+
+        <!-- Stats Overview -->
+        <section class="grid grid-cols-2 lg:grid-cols-6 gap-4">
+            <div class="saas-card p-6 rounded-2xl fade-in" style="animation-delay: 0.1s">
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Total Orders</p>
+                <h3 class="text-3xl font-bold text-white tracking-tight" id="stat-total">0</h3>
+            </div>
+            <div class="saas-card p-6 rounded-2xl fade-in" style="animation-delay: 0.2s">
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Total Revenue</p>
+                <h3 class="text-3xl font-bold text-white tracking-tight" id="stat-revenue">$0</h3>
+            </div>
+            <div class="saas-card p-6 rounded-2xl fade-in" style="animation-delay: 0.3s">
+                <p class="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2">Received</p>
+                <h3 class="text-3xl font-bold text-white tracking-tight" id="stat-received">0</h3>
+            </div>
+            <div class="saas-card p-6 rounded-2xl fade-in" style="animation-delay: 0.4s">
+                <p class="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2">Processing</p>
+                <h3 class="text-3xl font-bold text-white tracking-tight" id="stat-processing">0</h3>
+            </div>
+            <div class="saas-card p-6 rounded-2xl fade-in" style="animation-delay: 0.5s">
+                <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-2">Ready</p>
+                <h3 class="text-3xl font-bold text-white tracking-tight" id="stat-ready">0</h3>
+            </div>
+            <div class="saas-card p-6 rounded-2xl fade-in" style="animation-delay: 0.6s">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Delivered</p>
+                <h3 class="text-3xl font-bold text-white tracking-tight" id="stat-delivered">0</h3>
+            </div>
+        </section>
+
+        <!-- Filters -->
+        <section class="flex flex-col md:flex-row gap-4 items-center fade-in bg-[#161618]/50 p-2 rounded-2xl" style="animation-delay: 0.7s">
+            <div class="relative flex-1 w-full">
+                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600"></i>
+                <input type="text" id="searchInput" placeholder="Search orders..." 
+                    class="w-full bg-[#161618] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none transition-all placeholder:text-slate-700">
+            </div>
+            <div class="flex gap-4 w-full md:w-auto">
+                <select id="statusFilter" class="status-select bg-[#161618] border border-white/5 rounded-xl py-3 px-5 text-sm font-medium text-slate-400 focus:outline-none transition-all hover:border-white/20 w-full md:w-48">
+                    <option value="">All Statuses</option>
+                    <option value="RECEIVED">Received</option>
+                    <option value="PROCESSING">Processing</option>
+                    <option value="READY">Ready</option>
+                    <option value="DELIVERED">Delivered</option>
+                </select>
+                <button onclick="clearFilters()" class="px-6 py-3 rounded-xl border border-white/5 hover:bg-white/5 text-sm font-semibold transition-all">
+                    Reset
+                </button>
+            </div>
+        </section>
+
+        <!-- Table Section -->
+        <section class="saas-card rounded-2xl overflow-hidden fade-in" style="animation-delay: 0.8s">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-white/[0.02] border-b border-white/5">
+                            <th class="py-5 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Order Reference</th>
+                            <th class="py-5 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Customer Contact</th>
+                            <th class="py-5 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Order Status</th>
+                            <th class="py-5 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">Amount</th>
+                            <th class="py-5 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Quick Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody" class="divide-y divide-white/5">
+                        <!-- Content -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden py-40 text-center animate-fade-in">
+                <div class="flex flex-col items-center gap-4">
+                    <span class="text-4xl">📦</span>
+                    <div>
+                        <h4 class="text-lg font-bold text-white">No orders found</h4>
+                        <p class="text-slate-500 text-sm mt-1">Create a new order to get started</p>
+                    </div>
+                    <button onclick="openModal()" class="mt-4 text-indigo-400 font-semibold hover:text-indigo-300 transition-all">+ Add Order</button>
+                </div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loadingState" class="hidden py-40 flex justify-center">
+                <div class="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal -->
+    <div id="orderModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-6">
+        <div class="bg-[#161618] border border-white/10 rounded-3xl w-full max-w-lg p-10 animate-slide-up">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-xl font-bold text-white">New Service Order</h3>
+                <button onclick="closeModal()" class="p-2 hover:bg-white/5 rounded-full text-slate-500 transition-all">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <form id="orderForm" class="space-y-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Customer Full Name</label>
+                    <input type="text" id="custName" required placeholder="Sowmya M" 
+                        class="w-full bg-black/40 border border-white/5 rounded-xl p-4 text-sm focus:outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Active Phone Number</label>
+                    <input type="tel" id="custPhone" required placeholder="+91 98XXX XXXXX" 
+                        class="w-full bg-black/40 border border-white/5 rounded-xl p-4 text-sm focus:outline-none transition-all">
+                </div>
+                <div class="pt-6 flex gap-4">
+                    <button type="button" onclick="closeModal()" class="flex-1 py-4 text-sm font-semibold text-slate-400 hover:text-white transition-all">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary py-4 rounded-xl text-sm font-bold text-white transition-all">Confirm Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const tableBody = document.getElementById('ordersTableBody');
+        const emptyState = document.getElementById('emptyState');
+        const loadingState = document.getElementById('loadingState');
+
+        async function fetchData() {
+            tableBody.innerHTML = '';
+            emptyState.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+
+            try {
+                const query = new URLSearchParams({
+                    customerName: document.getElementById('searchInput').value,
+                    status: document.getElementById('statusFilter').value
+                });
+
+                const [res1, res2] = await Promise.all([
+                    fetch('/dashboard'),
+                    fetch(`/orders?${query}`)
+                ]);
+
+                const dash = await res1.json();
+                const orders = await res2.json();
+
+                updateUI(dash, orders);
+            } catch (err) { console.error(err); }
+            finally { loadingState.classList.add('hidden'); }
+        }
+
+        function updateUI(dash, orders) {
+            document.getElementById('stat-total').innerText = dash.totalOrders;
+            document.getElementById('stat-revenue').innerText = `$${dash.totalRevenue}`;
+            document.getElementById('stat-received').innerText = dash.countsByStatus.RECEIVED;
+            document.getElementById('stat-processing').innerText = dash.countsByStatus.PROCESSING;
+            document.getElementById('stat-ready').innerText = dash.countsByStatus.READY;
+            document.getElementById('stat-delivered').innerText = dash.countsByStatus.DELIVERED;
+
+            if (orders.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            tableBody.innerHTML = orders.map(order => `
+                <tr class="hover:bg-white/[0.03] group">
+                    <td class="py-6 px-6">
+                        <span class="text-xs font-mono font-medium text-indigo-300">${order.id}</span>
+                        <div class="text-[9px] text-slate-600 mt-1 uppercase font-bold tracking-tighter">Reference ID</div>
+                    </td>
+                    <td class="py-6 px-6">
+                        <div class="text-sm font-bold text-slate-200">${order.customerName}</div>
+                        <div class="text-[11px] text-slate-500 mt-1">${order.phone}</div>
+                    </td>
+                    <td class="py-6 px-6">
+                        <span class="badge badge-${order.status.toLowerCase()}">${order.status}</span>
+                    </td>
+                    <td class="py-6 px-6 text-center">
+                        <div class="text-sm font-bold text-slate-100">$${order.totalAmount}</div>
+                        <div class="text-[10px] text-slate-600 mt-1">Est: ${new Date(order.estimatedDelivery).toLocaleDateString(undefined, {month:'short', day:'numeric'})}</div>
+                    </td>
+                    <td class="py-6 px-6 text-right">
+                        <select onchange="updateStatus('${order.id}', this.value)" 
+                            class="status-select bg-[#1a1a1c] border border-white/5 text-[10px] font-bold uppercase rounded-lg py-2 px-4 focus:outline-none hover:bg-[#232326] transition-all cursor-pointer text-slate-400 hover:text-white hover:border-white/20">
+                            <option value="">Update Status</option>
+                            <option value="PROCESSING">Processing</option>
+                            <option value="READY">Ready</option>
+                            <option value="DELIVERED">Delivered</option>
+                        </select>
+                    </td>
+                </tr>
+            `).join('');
+            
+            lucide.createIcons();
+        }
+
+        async function updateStatus(id, status) {
+            if (!status) return;
+            await fetch(`/orders/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            fetchData();
+        }
+
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                customerName: document.getElementById('custName').value,
+                phone: document.getElementById('custPhone').value,
+                items: [{ name: "Standard Service", quantity: 1, price: 150 }]
+            };
+            await fetch('/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            closeModal();
+            fetchData();
+            e.target.reset();
+        });
+
+        document.getElementById('searchInput').addEventListener('input', () => {
+            clearTimeout(this.timeout);
+            this.timeout = setTimeout(fetchData, 400);
+        });
+        document.getElementById('statusFilter').addEventListener('change', fetchData);
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = '';
+            fetchData();
+        }
+
+        function openModal() { document.getElementById('orderModal').classList.replace('hidden', 'flex'); }
+        function closeModal() { document.getElementById('orderModal').classList.replace('flex', 'hidden'); }
+
+        fetchData();
+        setInterval(fetchData, 60000);
+    </script>
+</body>
+</html>
